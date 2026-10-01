@@ -21,12 +21,13 @@ import sys
 
 DEFAULT_PORT = 8765
 DEFAULT_PROVIDER = "anthropic"
-VALID_PROVIDERS = ("anthropic", "openai", "gemini")
+VALID_PROVIDERS = ("anthropic", "openai", "gemini", "kimi")
 
 MODEL_DEFAULTS = {
     "anthropic": "claude-sonnet-4-6",
     "openai": "gpt-5",
     "gemini": "gemini-2.5-flash",
+    "kimi": "kimi-k2",
 }
 
 CONFIG_FILENAME = "config.json"

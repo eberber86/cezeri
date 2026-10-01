@@ -3,7 +3,7 @@
 Exposes:
     chat(messages) -> str
         Plain-text, non-streaming chat. Provider comes from config
-        (`anthropic` | `openai` | `gemini`); the API key comes from env
+        (`anthropic` | `openai` | `gemini` | `kimi`); the API key comes from env
         `CEZERI_API_KEY` or the key file (via the config module / fallback).
 
         Raises LLMError with a clear "API key not configured" message when
@@ -38,6 +38,8 @@ _ANTHROPIC_VERSION = "2023-06-01"
 _OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 # Gemini via its OpenAI-compatible chat-completions endpoint (same interface).
 _GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+# Kimi (Moonshot AI) via its OpenAI-compatible endpoint.
+_KIMI_URL = "https://api.moonshot.ai/v1/chat/completions"
 
 _TIMEOUT = 120
 
@@ -61,10 +63,12 @@ def chat(messages: list[dict]) -> str:
     if provider == "anthropic":
         return _anthropic_chat(key, model, messages)
     if provider == "openai":
-        return _openai_chat(key, model, messages, _OPENAI_URL)
+        return _openai_chat(key, model, messages, _OPENAI_URL, "OpenAI")
     if provider == "gemini":
-        return _openai_chat(key, model, messages, _GEMINI_URL)
-    raise LLMError(f"Unknown provider {provider!r}: expected anthropic|openai|gemini.")
+        return _openai_chat(key, model, messages, _GEMINI_URL, "Gemini")
+    if provider == "kimi":
+        return _openai_chat(key, model, messages, _KIMI_URL, "Kimi")
+    raise LLMError(f"Unknown provider {provider!r}: expected anthropic|openai|gemini|kimi.")
 
 
 def extract_tool_calls(text: str) -> list[dict]:
@@ -117,7 +121,7 @@ def _anthropic_chat(key: str, model: str, messages: list[dict]) -> str:
         raise LLMError(f"Anthropic: could not parse response ({e}).")
 
 
-def _openai_chat(key: str, model: str, messages: list[dict], url: str) -> str:
+def _openai_chat(key: str, model: str, messages: list[dict], url: str, label: str) -> str:
     norm = [
         {"role": "assistant" if m.get("role") == "assistant" else
                  ("system" if m.get("role") == "system" else "user"),
@@ -131,7 +135,6 @@ def _openai_chat(key: str, model: str, messages: list[dict], url: str) -> str:
         timeout=_TIMEOUT,
     )
     if resp.status_code != 200:
-        label = "Gemini" if url == _GEMINI_URL else "OpenAI"
         raise LLMError(f"{label} API error {resp.status_code}: {resp.text[:500]}")
     try:
         data = resp.json()

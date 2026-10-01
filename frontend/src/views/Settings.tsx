@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, type AppConfig, type Health } from '../lib/api';
 
-const PROVIDERS = ['anthropic', 'openai', 'gemini'];
+const PROVIDERS = ['anthropic', 'openai', 'gemini', 'kimi'];
 
 export function Settings({ health }: { health: Health | null }) {
   const [config, setConfig] = useState<AppConfig | null>(null);

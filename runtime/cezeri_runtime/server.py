@@ -148,8 +148,8 @@ class _Handler(BaseHTTPRequestHandler):
             provider = body.get("provider")
             model = body.get("model")
             approved_dirs = body.get("approved_dirs")
-            if provider is not None and provider not in ("anthropic", "openai", "gemini"):
-                return self._send(400, {"error": "provider must be anthropic|openai|gemini"})
+            if provider is not None and provider not in ("anthropic", "openai", "gemini", "kimi"):
+                return self._send(400, {"error": "provider must be anthropic|openai|gemini|kimi"})
             if approved_dirs is not None and not isinstance(approved_dirs, list):
                 return self._send(400, {"error": "approved_dirs must be a list"})
             _stubs.update_config(provider=provider, model=model,

@@ -25,7 +25,7 @@ Pick one — the app never stores the key anywhere except the local key file:
 - **Option B — environment variable:** `set CEZERI_API_KEY=sk-ant-...`
   (or `$env:CEZERI_API_KEY=...` in PowerShell) before starting the sidecar.
 
-Switch provider anytime in Settings (Anthropic / OpenAI / Gemini) or via
+Switch provider anytime in Settings (Anthropic / OpenAI / Gemini / Kimi) or via
 `CEZERI_PROVIDER`. Optional: `CEZERI_MODEL` to pin a model name.
 
 Without a key, the sidecar runs fine — literature search, file tools,

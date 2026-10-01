@@ -81,7 +81,7 @@ actor ∈ `orchestrator|viral_immunologist|molecular_virologist|scientific_write
 
 ## LLM layer (W2) — provider-agnostic
 - `llm.py` exposes `chat(messages: list[{"role","content"}]) -> str` (plain text, no streaming).
-- Provider chosen by config `provider ∈ anthropic|openai|gemini`; API key from env `CEZERI_API_KEY` or key file. **No key in code, logs, or audit.**
+- Provider chosen by config `provider ∈ anthropic|openai|gemini|kimi`; API key from env `CEZERI_API_KEY` or key file. **No key in code, logs, or audit.**
 - Agent loop is ReAct-over-text (uniform across providers): system prompt tells the
   model to emit tool calls as fenced blocks:
   ```` ```tool {"name":"search_pubmed","args":{"query":"...","max_results":8}}``` ````
