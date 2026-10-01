@@ -64,7 +64,12 @@ export function Chat() {
     stopPolling();
     try {
       const { plan_id } = await api.chat(target, text);
-      setEntries((prev) => [...prev, { kind: 'user', target, text }]);
+      const plan = await api.plan(plan_id);
+      setEntries((prev) => [
+        ...prev,
+        { kind: 'user', target, text },
+        { kind: 'plan' as const, plan },
+      ]);
       setMessage('');
       pollPlan(plan_id);
     } catch (err) {
