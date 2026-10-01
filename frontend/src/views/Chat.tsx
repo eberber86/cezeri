@@ -119,6 +119,9 @@ export function Chat() {
                 <div className="step-head">
                   <StatusPill status={entry.plan.status} />
                 </div>
+                {entry.plan.status === 'failed' && entry.plan.error && (
+                  <div className="error">{entry.plan.error}</div>
+                )}
                 {entry.plan.steps.map((step) => (
                   <div className="step" key={step.id}>
                     <div className="step-head">

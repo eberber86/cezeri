@@ -37,6 +37,7 @@ export interface Plan {
   status: PlanStatus;
   steps: PlanStep[];
   created_at: string;
+  error?: string | null;
 }
 
 export interface PlanSummary {
