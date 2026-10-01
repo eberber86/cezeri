@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 
 import requests
 
@@ -42,6 +43,36 @@ _GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/comp
 _KIMI_URL = "https://api.moonshot.ai/v1/chat/completions"
 
 _TIMEOUT = 120
+
+# HTTP statuses worth retrying with backoff (rate limits, overload, gateway hiccups).
+_RETRYABLE_STATUSES = {429, 500, 502, 503}
+_MAX_ATTEMPTS = 4  # 1 initial try + 3 retries
+
+
+def _post_with_retry(url: str, headers: dict, body: dict, label: str) -> requests.Response:
+    """POST with exponential-backoff retries on transient failures.
+
+    Retries rate-limit (429), overload (503) and gateway (500/502) responses
+    as well as network errors. Raises LLMError when the error is permanent
+    or retries are exhausted.
+    """
+    delay = 2.0
+    for attempt in range(_MAX_ATTEMPTS):
+        try:
+            resp = requests.post(url, headers=headers, json=body, timeout=_TIMEOUT)
+        except requests.RequestException as e:
+            detail = f"network error: {e}"
+            retryable, resp = True, None
+        else:
+            detail = f"API error {resp.status_code}: {resp.text[:300]}"
+            retryable = resp.status_code in _RETRYABLE_STATUSES
+            if resp.status_code == 200:
+                return resp
+        if not retryable or attempt == _MAX_ATTEMPTS - 1:
+            raise LLMError(f"{label} {detail}")
+        time.sleep(delay)
+        delay *= 2
+    raise LLMError(f"{label}: request failed after retries")  # unreachable
 
 _TOOL_RE = re.compile(r"```tool\s*(\{.*?\})\s*```", re.DOTALL)
 
@@ -101,18 +132,16 @@ def _anthropic_chat(key: str, model: str, messages: list[dict]) -> str:
     body: dict = {"model": model, "max_tokens": 4096, "messages": rest}
     if system_parts:
         body["system"] = "\n\n".join(system_parts)
-    resp = requests.post(
+    resp = _post_with_retry(
         _ANTHROPIC_URL,
-        headers={
+        {
             "x-api-key": key,
             "anthropic-version": _ANTHROPIC_VERSION,
             "content-type": "application/json",
         },
-        json=body,
-        timeout=_TIMEOUT,
+        body,
+        "Anthropic",
     )
-    if resp.status_code != 200:
-        raise LLMError(f"Anthropic API error {resp.status_code}: {resp.text[:500]}")
     try:
         data = resp.json()
         return "".join(b.get("text", "") for b in data.get("content", [])
@@ -128,14 +157,12 @@ def _openai_chat(key: str, model: str, messages: list[dict], url: str, label: st
          "content": m.get("content", "")}
         for m in messages
     ]
-    resp = requests.post(
+    resp = _post_with_retry(
         url,
-        headers={"Authorization": f"Bearer {key}", "content-type": "application/json"},
-        json={"model": model, "messages": norm},
-        timeout=_TIMEOUT,
+        {"Authorization": f"Bearer {key}", "content-type": "application/json"},
+        {"model": model, "messages": norm},
+        label,
     )
-    if resp.status_code != 200:
-        raise LLMError(f"{label} API error {resp.status_code}: {resp.text[:500]}")
     try:
         data = resp.json()
         return data["choices"][0]["message"]["content"].strip()
