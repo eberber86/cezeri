@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Cezeri",
+  "version": "0.1.0",
+  "identifier": "com.cezeri.app",
+  "build": {
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Cezeri",
+        "width": 1280,
+        "height": 860,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:8765; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "externalBin": [
+      "bin/cezeri-sidecar"
+    ],
+    "resources": [
+      "../runtime"
+    ]
+  },
+  "_comment": "Dev mode: run the Python sidecar separately with `cd ~/workspace/cezeri/runtime && python -m cezeri_runtime.server`. Packaged builds bundle bin/cezeri-sidecar, a launcher that starts the Python runtime as a Tauri sidecar."
+}
