@@ -26,7 +26,7 @@ VALID_PROVIDERS = ("anthropic", "openai", "gemini", "kimi")
 MODEL_DEFAULTS = {
     "anthropic": "claude-sonnet-4-6",
     "openai": "gpt-5",
-    "gemini": "gemini-2.5-flash",
+    "gemini": "gemini-3.8-flash",
     "kimi": "kimi-k2",
 }
 
